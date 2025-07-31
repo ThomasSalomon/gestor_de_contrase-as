@@ -23,6 +23,9 @@ export class SecureStorage {
 
     // Configurar limpieza automática de sesión después de inactividad
     this.setupSessionTimeout()
+
+    // Configurar limpieza al cerrar aplicación
+    this.setupSessionCleanup()
   }
 
   /**
@@ -162,6 +165,40 @@ export class SecureStorage {
     if (this.isSessionActive()) {
       this.setupSessionTimeout()
     }
+  }
+
+  /**
+   * Limpia completamente la sesión y datos temporales
+   */
+  clearSession(): void {
+    this.endSession()
+
+    // Limpiar timeout si existe
+    if ((window as any).secureSessionTimeout) {
+      clearTimeout((window as any).secureSessionTimeout)
+      delete (window as any).secureSessionTimeout
+    }
+
+    // Limpiar datos de sesión temporal
+    sessionStorage.clear()
+  }
+
+  /**
+   * Configura limpieza automática al cerrar la ventana/pestaña
+   */
+  setupSessionCleanup(): void {
+    // Limpiar sesión al cerrar ventana/pestaña
+    window.addEventListener("beforeunload", () => {
+      this.clearSession()
+    })
+
+    // Limpiar sesión al cambiar de pestaña (opcional, más estricto)
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        // Opcional: terminar sesión cuando se oculta la pestaña
+        // this.clearSession()
+      }
+    })
   }
 }
 

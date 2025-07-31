@@ -26,6 +26,13 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
 
   useEffect(() => {
     loadPasswords()
+
+    // Cleanup function para cuando el componente se desmonte
+    return () => {
+      // Limpiar datos sensibles de la memoria cuando se cierre el dashboard
+      setPasswords([])
+      setSearchTerm("")
+    }
   }, [currentUser])
 
   const loadPasswords = async () => {
@@ -91,6 +98,18 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     setShowForm(false)
   }
 
+  const handleLogout = () => {
+    // Limpiar datos locales
+    setPasswords([])
+    setSearchTerm("")
+
+    // Terminar sesión segura
+    secureStorage.clearSession()
+
+    // Llamar al logout del componente padre
+    onLogout()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -102,7 +121,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Bienvenido, {currentUser}</span>
-              <Button variant="outline" onClick={onLogout}>
+              <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Cerrar Sesión
               </Button>

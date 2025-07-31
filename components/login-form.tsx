@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Lock, Shield } from "lucide-react"
 import { hashPassword, verifyPassword } from "@/lib/crypto"
 import { useSecureSession } from "@/hooks/use-secure-session"
+import SecurityNotice from "@/components/security-notice"
 
 interface LoginFormProps {
   onLogin: (username: string) => void
@@ -125,6 +126,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
           <CardDescription>Accede a tu bóveda segura de contraseñas</CardDescription>
         </CardHeader>
         <CardContent>
+          <SecurityNotice />
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>

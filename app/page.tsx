@@ -1,32 +1,28 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import LoginForm from "@/components/login-form"
 import Dashboard from "@/components/dashboard"
+import { useAppSecurity } from "@/hooks/use-app-security"
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const savedUser = localStorage.getItem("currentUser")
-    if (savedUser) {
-      setCurrentUser(savedUser)
-      setIsAuthenticated(true)
-    }
-  }, [])
+  // Hook de seguridad para limpiar sesiones
+  const { clearAllSessions } = useAppSecurity()
 
   const handleLogin = (username: string) => {
     setCurrentUser(username)
     setIsAuthenticated(true)
-    localStorage.setItem("currentUser", username)
+    // NO guardamos en localStorage para forzar login en cada sesión
   }
 
   const handleLogout = () => {
     setCurrentUser(null)
     setIsAuthenticated(false)
-    localStorage.removeItem("currentUser")
+    // Limpiar todas las sesiones
+    clearAllSessions()
   }
 
   return (
