@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Eye, EyeOff, Edit, Trash2, Copy, Globe } from "lucide-react"
 import type { PasswordEntry } from "@/types/password"
+import { useLanguage } from "@/contexts/language-context"
 
 interface PasswordListProps {
   passwords: PasswordEntry[]
@@ -26,6 +27,7 @@ interface PasswordListProps {
 
 export default function PasswordList({ passwords, onEdit, onDelete }: PasswordListProps) {
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set())
+  const { t } = useLanguage()
 
   const togglePasswordVisibility = (id: string) => {
     const newVisible = new Set(visiblePasswords)
@@ -40,7 +42,6 @@ export default function PasswordList({ passwords, onEdit, onDelete }: PasswordLi
   const copyToClipboard = async (text: string, type: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      // You could add a toast notification here
     } catch (err) {
       console.error("Failed to copy:", err)
     }
@@ -50,8 +51,8 @@ export default function PasswordList({ passwords, onEdit, onDelete }: PasswordLi
     return (
       <div className="text-center py-12">
         <Globe className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay contraseñas guardadas</h3>
-        <p className="text-gray-500">Comienza agregando tu primera contraseña usando el botón "Nueva Contraseña"</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t("dashboard.noPasswords")}</h3>
+        <p className="text-gray-500">{t("dashboard.noPasswordsDesc")}</p>
       </div>
     )
   }
@@ -61,11 +62,11 @@ export default function PasswordList({ passwords, onEdit, onDelete }: PasswordLi
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Dominio/Sitio</TableHead>
-            <TableHead>Usuario</TableHead>
-            <TableHead>Contraseña</TableHead>
-            <TableHead>Notas</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+            <TableHead>{t("passwordList.domain")}</TableHead>
+            <TableHead>{t("passwordList.username")}</TableHead>
+            <TableHead>{t("passwordList.password")}</TableHead>
+            <TableHead>{t("passwordList.notes")}</TableHead>
+            <TableHead className="text-right">{t("passwordList.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -120,19 +121,18 @@ export default function PasswordList({ passwords, onEdit, onDelete }: PasswordLi
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar contraseña?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("passwordList.deleteTitle")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Esta acción no se puede deshacer. Se eliminará permanentemente la contraseña para{" "}
-                          {password.domain}.
+                          {t("passwordList.deleteDescription").replace("{domain}", password.domain)}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>{t("passwordList.cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => onDelete(password.id)}
                           className="bg-red-600 hover:bg-red-700"
                         >
-                          Eliminar
+                          {t("passwordList.delete")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

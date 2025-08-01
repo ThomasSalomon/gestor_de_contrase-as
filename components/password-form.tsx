@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { Eye, EyeOff, Key } from "lucide-react"
 import type { PasswordEntry } from "@/types/password"
+import { useLanguage } from "@/contexts/language-context"
 
 interface PasswordFormProps {
   password?: PasswordEntry | null
@@ -32,6 +33,7 @@ export default function PasswordForm({ password, onSave, onCancel }: PasswordFor
     notes: "",
   })
   const [showPassword, setShowPassword] = useState(false)
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (password) {
@@ -66,21 +68,17 @@ export default function PasswordForm({ password, onSave, onCancel }: PasswordFor
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Key className="h-5 w-5 mr-2" />
-            {password ? "Editar Contraseña" : "Nueva Contraseña"}
+            {password ? t("passwordForm.editTitle") : t("passwordForm.newTitle")}
           </DialogTitle>
-          <DialogDescription>
-            {password
-              ? "Modifica los datos de la contraseña existente"
-              : "Agrega una nueva contraseña a tu bóveda segura"}
-          </DialogDescription>
+          <DialogDescription>{password ? t("passwordForm.editDesc") : t("passwordForm.newDesc")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="domain">Dominio/Sitio Web *</Label>
+            <Label htmlFor="domain">{t("passwordForm.domainLabel")}</Label>
             <Input
               id="domain"
-              placeholder="ejemplo.com"
+              placeholder={t("passwordForm.domainPlaceholder")}
               value={formData.domain}
               onChange={(e) => handleChange("domain", e.target.value)}
               required
@@ -88,10 +86,10 @@ export default function PasswordForm({ password, onSave, onCancel }: PasswordFor
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username">Usuario/Email *</Label>
+            <Label htmlFor="username">{t("passwordForm.usernameLabel")}</Label>
             <Input
               id="username"
-              placeholder="usuario@ejemplo.com"
+              placeholder={t("passwordForm.usernamePlaceholder")}
               value={formData.username}
               onChange={(e) => handleChange("username", e.target.value)}
               required
@@ -99,12 +97,12 @@ export default function PasswordForm({ password, onSave, onCancel }: PasswordFor
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña *</Label>
+            <Label htmlFor="password">{t("passwordForm.passwordLabel")}</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Contraseña segura"
+                placeholder={t("passwordForm.passwordPlaceholder")}
                 value={formData.password}
                 onChange={(e) => handleChange("password", e.target.value)}
                 required
@@ -123,10 +121,10 @@ export default function PasswordForm({ password, onSave, onCancel }: PasswordFor
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas (opcional)</Label>
+            <Label htmlFor="notes">{t("passwordForm.notesLabel")}</Label>
             <Textarea
               id="notes"
-              placeholder="Notas adicionales..."
+              placeholder={t("passwordForm.notesPlaceholder")}
               value={formData.notes}
               onChange={(e) => handleChange("notes", e.target.value)}
               rows={3}
@@ -135,9 +133,9 @@ export default function PasswordForm({ password, onSave, onCancel }: PasswordFor
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
+              {t("passwordList.cancel")}
             </Button>
-            <Button type="submit">{password ? "Actualizar" : "Guardar"}</Button>
+            <Button type="submit">{password ? t("passwordForm.update") : t("passwordForm.save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

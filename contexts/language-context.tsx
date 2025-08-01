@@ -83,7 +83,7 @@ function getTranslations() {
         masterPassword: "Master Password",
         confirmPassword: "Confirm Password",
         signInButton: "Sign In",
-        registerButton: "Create Account",
+        registerButton: "Register",
         signingIn: "Signing in...",
         creating: "Creating...",
         userNotFound: "User not found",
@@ -168,6 +168,7 @@ function getTranslations() {
       },
       // Password Strength
       strength: {
+        label: "Strength",
         requirements: {
           minLength: "Must be at least 8 characters",
           uppercase: "Must include at least one uppercase letter",
@@ -281,6 +282,7 @@ function getTranslations() {
       },
       // Password Strength
       strength: {
+        label: "Fortaleza",
         requirements: {
           minLength: "Debe tener al menos 8 caracteres",
           uppercase: "Debe incluir al menos una mayúscula",
@@ -393,6 +395,7 @@ function getTranslations() {
       },
       // Password Strength
       strength: {
+        label: "Força",
         requirements: {
           minLength: "Deve ter pelo menos 8 caracteres",
           uppercase: "Deve incluir pelo menos uma letra maiúscula",

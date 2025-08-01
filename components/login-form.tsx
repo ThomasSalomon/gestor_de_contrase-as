@@ -206,7 +206,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                               : "text-red-600"
                         }`}
                       >
-                        {t("generator.strength")}: {getStrengthText(passwordStrength.score)}
+                        {t("strength.label")}: {getStrengthText(passwordStrength.score)}
                       </div>
                       {passwordStrength.feedback.length > 0 && (
                         <ul className="text-red-600 space-y-1">
