@@ -9,8 +9,10 @@ import PasswordList from "@/components/password-list"
 import PasswordForm from "@/components/password-form"
 import PasswordGenerator from "@/components/password-generator"
 import SecurityStatus from "@/components/security-status"
+import LanguageSelector from "@/components/language-selector"
 import type { PasswordEntry } from "@/types/password"
 import { secureStorage } from "@/lib/secure-storage"
+import { useLanguage } from "@/contexts/language-context"
 
 interface DashboardProps {
   currentUser: string
@@ -23,13 +25,12 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   const [showForm, setShowForm] = useState(false)
   const [showGenerator, setShowGenerator] = useState(false)
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     loadPasswords()
 
-    // Cleanup function para cuando el componente se desmonte
     return () => {
-      // Limpiar datos sensibles de la memoria cuando se cierre el dashboard
       setPasswords([])
       setSearchTerm("")
     }
@@ -42,7 +43,6 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     } catch (error) {
       console.error("Error loading passwords:", error)
       setPasswords([])
-      // Aquí podrías mostrar un toast de error
     }
   }
 
@@ -52,7 +52,6 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
       setPasswords(newPasswords)
     } catch (error) {
       console.error("Error saving passwords:", error)
-      // Aquí podrías mostrar un toast de error
     }
   }
 
@@ -99,14 +98,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   }
 
   const handleLogout = () => {
-    // Limpiar datos locales
     setPasswords([])
     setSearchTerm("")
-
-    // Terminar sesión segura
     secureStorage.clearSession()
-
-    // Llamar al logout del componente padre
     onLogout()
   }
 
@@ -117,13 +111,16 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Key className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-semibold text-gray-900">Gestor de Contraseñas</h1>
+              <h1 className="text-xl font-semibold text-gray-900">{t("dashboard.title")}</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Bienvenido, {currentUser}</span>
+              <LanguageSelector />
+              <span className="text-sm text-gray-600">
+                {t("dashboard.welcome")}, {currentUser}
+              </span>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Cerrar Sesión
+                {t("dashboard.logout")}
               </Button>
             </div>
           </div>
@@ -137,7 +134,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Buscar por dominio o usuario..."
+                  placeholder={t("dashboard.search")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -147,11 +144,11 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
             <div className="flex gap-2">
               <Button onClick={() => setShowGenerator(true)} variant="outline">
                 <Key className="h-4 w-4 mr-2" />
-                Generar Contraseña
+                {t("dashboard.generatePassword")}
               </Button>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Nueva Contraseña
+                {t("dashboard.newPassword")}
               </Button>
             </div>
           </div>
@@ -159,7 +156,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Mis Contraseñas ({filteredPasswords.length})</CardTitle>
+            <CardTitle>
+              {t("dashboard.myPasswords")} ({filteredPasswords.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <PasswordList passwords={filteredPasswords} onEdit={startEdit} onDelete={handleDeletePassword} />

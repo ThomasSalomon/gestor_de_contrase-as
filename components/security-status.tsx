@@ -4,10 +4,12 @@ import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Shield, AlertTriangle, CheckCircle } from "lucide-react"
 import { useSecureSession } from "@/hooks/use-secure-session"
+import { useLanguage } from "@/contexts/language-context"
 
 export default function SecurityStatus() {
   const { isSessionActive, sessionError } = useSecureSession()
   const [lastActivity, setLastActivity] = useState(Date.now())
+  const { t } = useLanguage()
 
   useEffect(() => {
     const updateActivity = () => setLastActivity(Date.now())
@@ -42,7 +44,7 @@ export default function SecurityStatus() {
       <CheckCircle className="h-4 w-4 text-green-600" />
       <AlertDescription className="text-green-800">
         <div className="flex items-center justify-between">
-          <span>Sesión segura activa - Datos encriptados con AES-256</span>
+          <span>{t("security.sessionActive")}</span>
           <Shield className="h-4 w-4 text-green-600" />
         </div>
       </AlertDescription>
