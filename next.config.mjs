@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -9,6 +10,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    optimizePackageImports: ['@radix-ui/react-icons']
+  }
 }
 
 export default nextConfig
