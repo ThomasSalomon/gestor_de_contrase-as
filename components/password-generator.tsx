@@ -105,22 +105,22 @@ export default function PasswordGenerator({ onClose }: PasswordGeneratorProps) {
             <Label>{t("generator.characterTypes")}</Label>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="uppercase" checked={includeUppercase} onCheckedChange={setIncludeUppercase} />
+              <Checkbox id="uppercase" checked={includeUppercase} onCheckedChange={(checked) => setIncludeUppercase(checked === true)} />
               <Label htmlFor="uppercase">{t("generator.uppercase")}</Label>
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="lowercase" checked={includeLowercase} onCheckedChange={setIncludeLowercase} />
+              <Checkbox id="lowercase" checked={includeLowercase} onCheckedChange={(checked) => setIncludeLowercase(checked === true)} />
               <Label htmlFor="lowercase">{t("generator.lowercase")}</Label>
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="numbers" checked={includeNumbers} onCheckedChange={setIncludeNumbers} />
+              <Checkbox id="numbers" checked={includeNumbers} onCheckedChange={(checked) => setIncludeNumbers(checked === true)} />
               <Label htmlFor="numbers">{t("generator.numbers")}</Label>
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="symbols" checked={includeSymbols} onCheckedChange={setIncludeSymbols} />
+              <Checkbox id="symbols" checked={includeSymbols} onCheckedChange={(checked) => setIncludeSymbols(checked === true)} />
               <Label htmlFor="symbols">{t("generator.symbols")}</Label>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { useLanguage } from "@/contexts/language-context"
 // Lazy loading para componentes modales
 const PasswordForm = lazy(() => import("@/components/password-form"))
 const PasswordGenerator = lazy(() => import("@/components/password-generator"))
+const DevTools = lazy(() => import("@/components/dev-tools"))
 
 interface DashboardProps {
   currentUser: string
@@ -45,6 +46,28 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     } catch (error) {
       console.error("Error loading passwords:", error)
       setPasswords([])
+    }
+  }
+
+  // Funciones para DevTools (solo en desarrollo)
+  const handleLoadMockData = async (mockPasswords: PasswordEntry[]) => {
+    try {
+      setPasswords(mockPasswords)
+      // Opcional: guardar en almacenamiento seguro para persistencia
+      await secureStorage.setSecureItem(`passwords_${currentUser}`, mockPasswords)
+      console.log(`Cargados ${mockPasswords.length} datos ficticios`)
+    } catch (error) {
+      console.error("Error loading mock data:", error)
+    }
+  }
+
+  const handleClearMockData = async () => {
+    try {
+      setPasswords([])
+      await secureStorage.removeSecureItem(`passwords_${currentUser}`)
+      console.log("Datos ficticios limpiados")
+    } catch (error) {
+      console.error("Error clearing mock data:", error)
     }
   }
 
@@ -183,6 +206,18 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
           <Suspense fallback={<div className="flex items-center justify-center p-4">Cargando...</div>}>
             <PasswordGenerator onClose={() => setShowGenerator(false)} />
           </Suspense>
+        )}
+
+        {/* Herramientas de desarrollo - Solo visible en desarrollo */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8">
+            <Suspense fallback={<div className="flex items-center justify-center p-4">Cargando DevTools...</div>}>
+              <DevTools 
+                onLoadData={handleLoadMockData}
+                onClearData={handleClearMockData}
+              />
+            </Suspense>
+          </div>
         )}
       </main>
     </div>
