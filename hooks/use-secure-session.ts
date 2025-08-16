@@ -7,6 +7,7 @@ import { validatePasswordStrength } from "@/lib/crypto"
 export function useSecureSession() {
   const [isSessionActive, setIsSessionActive] = useState(false)
   const [sessionError, setSessionError] = useState<string | null>(null)
+  const [lastActivityTime, setLastActivityTime] = useState(Date.now())
 
   useEffect(() => {
     // Verificar si hay una sesión activa al montar
@@ -20,14 +21,19 @@ export function useSecureSession() {
 
     window.addEventListener("sessionExpired", handleSessionExpired)
 
-    // Resetear timeout en actividad del usuario
+    // Resetear timeout en actividad del usuario con throttling
     const resetTimeout = () => {
-      secureStorage.resetSessionTimeout()
+      const now = Date.now()
+      // Throttle: solo ejecutar si han pasado al menos 1 segundo desde la última actividad
+      if (now - lastActivityTime >= 1000) {
+        setLastActivityTime(now)
+        secureStorage.resetSessionTimeout()
+      }
     }
 
     const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart"]
     events.forEach((event) => {
-      document.addEventListener(event, resetTimeout, true)
+      document.addEventListener(event, resetTimeout, { passive: true, capture: true })
     })
 
     return () => {
@@ -36,7 +42,7 @@ export function useSecureSession() {
         document.removeEventListener(event, resetTimeout, true)
       })
     }
-  }, [])
+  }, [lastActivityTime])
 
   const initSession = useCallback(async (masterPassword: string) => {
     try {

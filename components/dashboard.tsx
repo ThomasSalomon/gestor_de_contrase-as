@@ -1,18 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, lazy, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LogOut, Plus, Search, Key } from "lucide-react"
 import PasswordList from "@/components/password-list"
-import PasswordForm from "@/components/password-form"
-import PasswordGenerator from "@/components/password-generator"
 import SecurityStatus from "@/components/security-status"
 import LanguageSelector from "@/components/language-selector"
 import type { PasswordEntry } from "@/types/password"
 import { secureStorage } from "@/lib/secure-storage"
 import { useLanguage } from "@/contexts/language-context"
+
+// Lazy loading para componentes modales
+const PasswordForm = lazy(() => import("@/components/password-form"))
+const PasswordGenerator = lazy(() => import("@/components/password-generator"))
 
 interface DashboardProps {
   currentUser: string
@@ -81,11 +83,13 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     savePasswords(updatedPasswords)
   }
 
-  const filteredPasswords = passwords.filter(
-    (password) =>
-      password.domain.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      password.username.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const filteredPasswords = useMemo(() => {
+    return passwords.filter(
+      (password) =>
+        password.domain.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        password.username.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+  }, [passwords, searchTerm])
 
   const startEdit = (password: PasswordEntry) => {
     setEditingPassword(password)
@@ -166,14 +170,20 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         </Card>
 
         {showForm && (
-          <PasswordForm
-            password={editingPassword}
-            onSave={editingPassword ? handleEditPassword : handleAddPassword}
-            onCancel={cancelEdit}
-          />
+          <Suspense fallback={<div className="flex items-center justify-center p-4">Cargando...</div>}>
+            <PasswordForm
+              password={editingPassword}
+              onSave={editingPassword ? handleEditPassword : handleAddPassword}
+              onCancel={cancelEdit}
+            />
+          </Suspense>
         )}
 
-        {showGenerator && <PasswordGenerator onClose={() => setShowGenerator(false)} />}
+        {showGenerator && (
+          <Suspense fallback={<div className="flex items-center justify-center p-4">Cargando...</div>}>
+            <PasswordGenerator onClose={() => setShowGenerator(false)} />
+          </Suspense>
+        )}
       </main>
     </div>
   )

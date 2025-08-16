@@ -4,6 +4,9 @@ export class SecureStorage {
   private static instance: SecureStorage
   private masterPassword: string | null = null
   private sessionActive = false
+  private pendingOperations: Map<string, any> = new Map()
+  private debounceTimer: NodeJS.Timeout | null = null
+  private readonly DEBOUNCE_DELAY = 300 // 300ms debounce
 
   private constructor() {}
 
@@ -31,7 +34,14 @@ export class SecureStorage {
   /**
    * Termina la sesión segura
    */
-  endSession(): void {
+  async endSession(): Promise<void> {
+    // Procesar operaciones pendientes antes de cerrar sesión
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = null
+    }
+    await this.flushPendingOperations()
+    
     this.masterPassword = null
     this.sessionActive = false
   }
@@ -44,9 +54,30 @@ export class SecureStorage {
   }
 
   /**
-   * Almacena datos encriptados
+   * Almacena datos encriptados con debounce
    */
   async setSecureItem(key: string, data: any): Promise<void> {
+    if (!this.isSessionActive()) {
+      throw new Error("No active secure session")
+    }
+
+    // Agregar a operaciones pendientes
+    this.pendingOperations.set(key, data)
+    
+    // Debounce las operaciones de escritura
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+    }
+    
+    this.debounceTimer = setTimeout(() => {
+      this.flushPendingOperations()
+    }, this.DEBOUNCE_DELAY)
+  }
+
+  /**
+   * Almacena datos encriptados inmediatamente (sin debounce)
+   */
+  async setSecureItemImmediate(key: string, data: any): Promise<void> {
     if (!this.isSessionActive()) {
       throw new Error("No active secure session")
     }
@@ -67,6 +98,29 @@ export class SecureStorage {
       console.error("Error storing secure item:", error)
       throw new Error("Failed to store secure data")
     }
+  }
+
+  /**
+   * Procesa todas las operaciones pendientes en lote
+   */
+  private async flushPendingOperations(): Promise<void> {
+    if (this.pendingOperations.size === 0) return
+
+    const operations = Array.from(this.pendingOperations.entries())
+    this.pendingOperations.clear()
+    
+    // Procesar operaciones en lote
+    const batchPromises = operations.map(async ([key, data]) => {
+      try {
+        await this.setSecureItemImmediate(key, data)
+      } catch (error) {
+        console.error(`Error in batch operation for key ${key}:`, error)
+        // Re-agregar a pendientes si falla
+        this.pendingOperations.set(key, data)
+      }
+    })
+    
+    await Promise.allSettled(batchPromises)
   }
 
   /**
@@ -170,13 +224,20 @@ export class SecureStorage {
   /**
    * Limpia completamente la sesión y datos temporales
    */
-  clearSession(): void {
-    this.endSession()
+  async clearSession(): Promise<void> {
+    await this.endSession()
 
     // Limpiar timeout si existe
     if ((window as any).secureSessionTimeout) {
       clearTimeout((window as any).secureSessionTimeout)
       delete (window as any).secureSessionTimeout
+    }
+
+    // Limpiar operaciones pendientes
+    this.pendingOperations.clear()
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = null
     }
 
     // Limpiar datos de sesión temporal

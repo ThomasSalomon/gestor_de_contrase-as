@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, memo } from "react"
+import { useVirtualScroll } from "@/hooks/use-virtual-scroll"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -25,9 +26,21 @@ interface PasswordListProps {
   onDelete: (id: string) => void
 }
 
-export default function PasswordList({ passwords, onEdit, onDelete }: PasswordListProps) {
+const PasswordList = memo(function PasswordList({ passwords, onEdit, onDelete }: PasswordListProps) {
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set())
   const { t } = useLanguage()
+  
+  // Configuración para virtual scrolling
+  const ITEM_HEIGHT = 80 // Altura estimada de cada fila
+  const CONTAINER_HEIGHT = 400 // Altura del contenedor
+  const shouldUseVirtualScroll = passwords.length > 20 // Usar virtual scroll para más de 20 elementos
+  
+  const virtualScroll = useVirtualScroll({
+    items: passwords,
+    itemHeight: ITEM_HEIGHT,
+    containerHeight: CONTAINER_HEIGHT,
+    overscan: 3,
+  })
 
   const togglePasswordVisibility = (id: string) => {
     const newVisible = new Set(visiblePasswords)
@@ -57,6 +70,113 @@ export default function PasswordList({ passwords, onEdit, onDelete }: PasswordLi
     )
   }
 
+  const renderPasswordRow = (password: PasswordEntry, index?: number) => (
+    <TableRow key={password.id} style={shouldUseVirtualScroll ? { height: ITEM_HEIGHT } : undefined}>
+      <TableCell className="font-medium">
+        <div className="flex items-center">
+          <Globe className="h-4 w-4 text-gray-400 mr-2" />
+          {password.domain}
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center justify-between">
+          <span>{password.username}</span>
+          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(password.username, "usuario")}>
+            <Copy className="h-3 w-3" />
+          </Button>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center justify-between max-w-xs">
+          <span className="font-mono">
+            {visiblePasswords.has(password.id) ? password.password : "••••••••••••"}
+          </span>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" onClick={() => togglePasswordVisibility(password.id)}>
+              {visiblePasswords.has(password.id) ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => copyToClipboard(password.password, "contraseña")}>
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell>
+        {password.notes && (
+          <Badge variant="secondary" className="text-xs">
+            {password.notes.length > 20 ? `${password.notes.substring(0, 20)}...` : password.notes}
+          </Badge>
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => onEdit(password)}>
+            <Edit className="h-4 w-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("passwordList.deleteTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("passwordList.deleteDescription").replace("{domain}", password.domain)}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("passwordList.cancel")}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(password.id)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {t("passwordList.delete")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+
+  if (shouldUseVirtualScroll) {
+    return (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("passwordList.domain")}</TableHead>
+              <TableHead>{t("passwordList.username")}</TableHead>
+              <TableHead>{t("passwordList.password")}</TableHead>
+              <TableHead>{t("passwordList.notes")}</TableHead>
+              <TableHead className="text-right">{t("passwordList.actions")}</TableHead>
+            </TableRow>
+          </TableHeader>
+        </Table>
+        <div 
+          className="overflow-auto" 
+          style={{ height: CONTAINER_HEIGHT }}
+          onScroll={virtualScroll.handleScroll}
+        >
+          <div style={{ height: virtualScroll.totalHeight, position: 'relative' }}>
+            <div style={{ transform: `translateY(${virtualScroll.offsetY}px)` }}>
+              <Table>
+                <TableBody>
+                  {virtualScroll.visibleItems.map(({ item: password, index }) => 
+                    renderPasswordRow(password, index)
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -70,79 +190,11 @@ export default function PasswordList({ passwords, onEdit, onDelete }: PasswordLi
           </TableRow>
         </TableHeader>
         <TableBody>
-          {passwords.map((password) => (
-            <TableRow key={password.id}>
-              <TableCell className="font-medium">
-                <div className="flex items-center">
-                  <Globe className="h-4 w-4 text-gray-400 mr-2" />
-                  {password.domain}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center justify-between">
-                  <span>{password.username}</span>
-                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(password.username, "usuario")}>
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center justify-between max-w-xs">
-                  <span className="font-mono">
-                    {visiblePasswords.has(password.id) ? password.password : "••••••••••••"}
-                  </span>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => togglePasswordVisibility(password.id)}>
-                      {visiblePasswords.has(password.id) ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(password.password, "contraseña")}>
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                {password.notes && (
-                  <Badge variant="secondary" className="text-xs">
-                    {password.notes.length > 20 ? `${password.notes.substring(0, 20)}...` : password.notes}
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => onEdit(password)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>{t("passwordList.deleteTitle")}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {t("passwordList.deleteDescription").replace("{domain}", password.domain)}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>{t("passwordList.cancel")}</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => onDelete(password.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          {t("passwordList.delete")}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {passwords.map((password) => renderPasswordRow(password))}
         </TableBody>
       </Table>
     </div>
   )
-}
+})
+
+export default PasswordList

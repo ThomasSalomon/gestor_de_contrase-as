@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,7 +25,7 @@ interface PasswordFormProps {
   onCancel: () => void
 }
 
-export default function PasswordForm({ password, onSave, onCancel }: PasswordFormProps) {
+const PasswordForm = memo(function PasswordForm({ password, onSave, onCancel }: PasswordFormProps) {
   const [formData, setFormData] = useState({
     domain: "",
     username: "",
@@ -141,4 +141,6 @@ export default function PasswordForm({ password, onSave, onCancel }: PasswordFor
       </DialogContent>
     </Dialog>
   )
-}
+})
+
+export default PasswordForm
